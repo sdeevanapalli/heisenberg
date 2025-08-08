@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSOC Operations Center</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1a202c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CyberSOC">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkN5YmVyU09DIE9wZXJhdGlvbnMgQ2VudGVyIiwKICAic2hvcnRfbmFtZSI6ICJDeWJlclNPQyIsCiAgImRlc2NyaXB0aW9uIjogIlByb2Zlc3Npb25hbCBDeWJlcnNlY3VyaXR5IE9wZXJhdGlvbnMgQ2VudGVyIERhc2hib2FyZCIsCiAgInN0YXJ0X3VybCI6ICIvIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWEyMDJjIiwKICAidGhlbWVfY29sb3IiOiAiIzMxODJjZSIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDslM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB3aWR0aD0nNTEyJyBoZWlnaHQ9JzUxMicgdmlld0JveD0nMCAwIDUxMiA1MTInJTNFK2NpcmNsZSBjeD0nMjU2JyBjeT0nMjU2JyByPScyMzAnIGZpbGw9JyMxYTIwMmMnLyUzRSUzQ3RleHQgeD0nMjU2JyB5PSczMDAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyMzMTgyY2UnIGZvbnQtZmFtaWx5PSdtb25vc3BhY2UnIGZvbnQtc2l6ZT0nODAnJTNFJUN7JTNDJTJGdGV4dCUzRSUzQyUyRnN2ZyUzRSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
+</head>
+<body>
+    <div class="soc-dashboard">
+        <!-- Top Status Bar -->
+        <header class="status-bar">
+            <div class="status-section">
+                <div class="threat-level">
+                    <span class="threat-indicator elevated"></span>
+                    <span class="threat-text">Threat Level: ELEVATED (7.2)</span>
+                </div>
+                <div class="active-incidents">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Active Incidents: <strong>3</strong></span>
+                    <span class="severity-breakdown">
+                        <span class="critical">1 CRITICAL</span>
+                        <span class="high">1 HIGH</span>
+                        <span class="medium">1 MEDIUM</span>
+                    </span>
+                </div>
+            </div>
+            <div class="center-section">
+                <div class="network-health">
+                    <span class="health-indicator healthy"></span>
+                    <span>Network: HEALTHY</span>
+                </div>
+                <div class="uptime">
+                    <i class="fas fa-clock"></i>
+                    <span>Uptime: 99.97%</span>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="current-time" id="currentTime"></div>
+                <div class="user-profile">
+                    <span class="user-name">Alex Morgan</span>
+                    <span class="user-role">SOC Analyst L2</span>
+                    <span class="clearance">SECRET</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <main class="dashboard-grid">
+            <!-- Threat Intelligence Panel -->
+            <section class="panel threat-intelligence">
+                <div class="panel-header">
+                    <h3><i class="fas fa-shield-virus"></i> Threat Intelligence</h3>
+                    <div class="panel-controls">
+                        <button class="btn-refresh" onclick="refreshThreatIntel()"><i class="fas fa-sync"></i></button>
+                        <button class="btn-expand"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="threat-map-container">
+                        <div class="threat-map" id="threatMap">
+                            <div class="map-placeholder">🌍 Global Threat Map</div>
+                            <div class="attack-indicators">
+                                <div class="attack-origin" style="top: 30%; left: 25%;" data-country="Russia">
+                                    <div class="pulse-dot critical"></div>
+                                </div>
+                                <div class="attack-origin" style="top: 45%; left: 70%;" data-country="China">
+                                    <div class="pulse-dot high"></div>
+                                </div>
+                                <div class="attack-origin" style="top: 60%; left: 15%;" data-country="Unknown">
+                                    <div class="pulse-dot medium"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ioc-feed">
+                        <h4>Latest IOCs</h4>
+                        <div class="ioc-list" id="iocList">
+                            <!-- IOCs will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="mitre-attacks">
+                        <h4>MITRE ATT&CK Detections</h4>
+                        <div class="mitre-list" id="mitreList">
+                            <!-- MITRE techniques will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Network Monitoring -->
+            <section class="panel network-monitoring">
+                <div class="panel-header">
+                    <h3><i class="fas fa-network-wired"></i> Network Monitoring</h3>
+                    <div class="panel-controls">
+                        <select class="time-range">
+                            <option>Last 1 Hour</option>
+                            <option>Last 6 Hours</option>
+                            <option selected>Last 24 Hours</option>
+                            <option>Last 7 Days</option>
+                        </select>
+                        <button class="btn-refresh" onclick="refreshNetwork()"><i class="fas fa-sync"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="network-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">2.4 Gbps</div>
+                            <div class="stat-label">Total Bandwidth</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">1,247</div>
+                            <div class="stat-label">Active Connections</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">99.97%</div>
+                            <div class="stat-label">Uptime</div>
+                        </div>
+                    </div>
+                    <div class="traffic-chart">
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                    <div class="top-talkers">
+                        <h4>Top Talkers</h4>
+                        <div class="talkers-list" id="talkersList">
+                            <!-- Top talkers will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security Events -->
+            <section class="panel security-events">
+                <div class="panel-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Security Events</h3>
+                    <div class="panel-controls">
+                        <div class="search-box">
+                            <input type="text" placeholder="Search events..." class="search-input">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <select class="severity-filter">
+                            <option value="all">All Severities</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="event-stats">
+                        <div class="event-count critical">
+                            <span class="count">12</span>
+                            <span class="label">Critical</span>
+                        </div>
+                        <div class="event-count high">
+                            <span class="count">47</span>
+                            <span class="label">High</span>
+                        </div>
+                        <div class="event-count medium">
+                            <span class="count">156</span>
+                            <span class="label">Medium</span>
+                        </div>
+                        <div class="event-count low">
+                            <span class="count">423</span>
+                            <span class="label">Low</span>
+                        </div>
+                    </div>
+                    <div class="events-table">
+                        <div class="table-header">
+                            <div class="col-time">Time</div>
+                            <div class="col-severity">Severity</div>
+                            <div class="col-event">Event</div>
+                            <div class="col-source">Source</div>
+                            <div class="col-actions">Actions</div>
+                        </div>
+                        <div class="events-list" id="eventsList">
+                            <!-- Events will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Health -->
+            <section class="panel system-health">
+                <div class="panel-header">
+                    <h3><i class="fas fa-heartbeat"></i> System Health</h3>
+                    <div class="panel-controls">
+                        <button class="btn-refresh" onclick="refreshSystemHealth()"><i class="fas fa-sync"></i></button>
+                        <button class="btn-settings"><i class="fas fa-cog"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="health-overview">
+                        <div class="system-status">
+                            <div class="status-item healthy">
+                                <i class="fas fa-server"></i>
+                                <span>SIEM Platform</span>
+                                <span class="status-badge">HEALTHY</span>
+                            </div>
+                            <div class="status-item warning">
+                                <i class="fas fa-database"></i>
+                                <span>Log Collectors</span>
+                                <span class="status-badge">WARNING</span>
+                            </div>
+                            <div class="status-item healthy">
+                                <i class="fas fa-cloud"></i>
+                                <span>Threat Intel</span>
+                                <span class="status-badge">HEALTHY</span>
+                            </div>
+                            <div class="status-item healthy">
+                                <i class="fas fa-backup"></i>
+                                <span>Backup Systems</span>
+                                <span class="status-badge">HEALTHY</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="performance-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Events/Second</div>
+                            <div class="metric-value">15,420</div>
+                            <div class="metric-trend up">↗ +2.3%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Storage Used</div>
+                            <div class="metric-value">847 GB</div>
+                            <div class="metric-trend neutral">━ 33.9%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Response Time</div>
+                            <div class="metric-value">23ms</div>
+                            <div class="metric-trend down">↘ -1.2%</div>
+                        </div>
+                    </div>
+                    <div class="resource-usage">
+                        <canvas id="resourceChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vulnerability Management -->
+            <section class="panel vulnerability-management">
+                <div class="panel-header">
+                    <h3><i class="fas fa-bug"></i> Vulnerability Management</h3>
+                    <div class="panel-controls">
+                        <button class="btn-scan" onclick="startVulnScan()">Start Scan</button>
+                        <button class="btn-refresh"><i class="fas fa-sync"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="vuln-stats">
+                        <div class="vuln-count critical">
+                            <span class="count">3</span>
+                            <span class="label">Critical</span>
+                        </div>
+                        <div class="vuln-count high">
+                            <span class="count">12</span>
+                            <span class="label">High</span>
+                        </div>
+                        <div class="vuln-count medium">
+                            <span class="count">45</span>
+                            <span class="label">Medium</span>
+                        </div>
+                        <div class="vuln-count low">
+                            <span class="count">78</span>
+                            <span class="label">Low</span>
+                        </div>
+                    </div>
+                    <div class="recent-vulns" id="recentVulns">
+                        <!-- Recent vulnerabilities will be populated by JavaScript -->
+                    </div>
+                    <div class="compliance-status">
+                        <h4>Compliance Status</h4>
+                        <div class="compliance-frameworks" id="complianceFrameworks">
+                            <!-- Compliance data will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Incident Response -->
+            <section class="panel incident-response">
+                <div class="panel-header">
+                    <h3><i class="fas fa-fire-extinguisher"></i> Incident Response</h3>
+                    <div class="panel-controls">
+                        <button class="btn-create-incident" onclick="createIncident()">New Incident</button>
+                        <button class="btn-playbooks"><i class="fas fa-book"></i> Playbooks</button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="active-incidents" id="activeIncidents">
+                        <!-- Active incidents will be populated by JavaScript -->
+                    </div>
+                    <div class="response-metrics">
+                        <div class="metric-card">
+                            <div class="metric-title">MTTD</div>
+                            <div class="metric-value">12.5m</div>
+                            <div class="metric-label">Mean Time to Detect</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">MTTR</div>
+                            <div class="metric-value">28.3m</div>
+                            <div class="metric-label">Mean Time to Respond</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">MTTC</div>
+                            <div class="metric-value">45.7m</div>
+                            <div class="metric-label">Mean Time to Contain</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal for detailed views -->
+        <div class="modal" id="detailModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="modalContent">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
